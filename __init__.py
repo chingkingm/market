@@ -1,4 +1,4 @@
-from .manager import manager
+from .manager import manager,Shop
 from .backend import json_backend, balance, duel_backend
 from .product import coincap_product, sina_product, sochain_product, cryptocompare_product
 from hoshino.service import Service
@@ -47,19 +47,19 @@ async def buy_or_sell(bot, ev):
     await bot.finish(ev, (mgr.sell_products if ev['match'].group(1) == '卖出' else mgr.buy_products)(str(ev['group_id']), str(ev['user_id']), ev['match'].group(2).strip(), float(ev['match'].group(3))), at_sender=True)
 
 @sv.on_rex(r'^市场列表$')
-async def buy_or_sell(bot, ev):
+async def listmarket(bot, ev):
     await bot.finish(ev, mgr.list_products(), at_sender=True)
 
 @sv.on_rex(r'^仓库列表$')
-async def buy_or_sell(bot, ev):
+async def listbalance(bot, ev):
     await bot.finish(ev, mgr.list_balances(str(ev['group_id']), str(ev['user_id'])), at_sender=True)
 
 @sv.on_rex(r'^金币余额$')
-async def buy_or_sell(bot, ev):
+async def excoin(bot, ev):
     await bot.finish(ev, mgr.check_money(str(ev['group_id']), str(ev['user_id'])), at_sender=True)
 
 @sv.on_rex(r'^签到$')
-async def buy_or_sell(bot, ev):
+async def check(bot, ev):
     await bot.finish(ev, mgr.daily_check(str(ev['group_id']), str(ev['user_id'])), at_sender=True)
 
 @sv.on_prefix('奖励金币','增加金币')
@@ -100,3 +100,8 @@ async def coin_g(bot, ev):
             sid_r = int(m.data['qq'])
     if sid_r:
         await bot.finish(ev, mgr.coin_gift(str(gid),str(sid_g),str(sid_r),val), at_sender = True)
+
+@sv.scheduled_job('cron',hour=4,minute=30)
+def the_sale():
+
+    Shop.gen_price()
