@@ -3,6 +3,7 @@ from logging import getLogger
 from typing import List
 from .product import product
 from .backend import backend, balance
+from .Shop import Shop
 from math import ceil, floor
 from hoshino.util import DailyNumberLimiterInFile
 import random
@@ -48,17 +49,22 @@ class manager:
             self.products[product.name] = product
         self.backend = backend
         self.balance = balance
+        self.shop = Shop()
 
     def buy_products(self, gid, uid, item, val) -> str:
         gold = Score(int(uid))
         val = round(val, 2)
+        if item not in self.products:
+            if not self.shop.ensure(item):
+                return f"找不到物品{item}"
         if val <= 0:
             return "数量必须是正数！"
         elif val < 0.01:
             return "太少了,不卖!"
-        if item not in self.products:
-            return f"找不到物品{item}"
-        origin = self.products[item].price * val
+        try:
+            origin = self.products[item].price * val
+        except KeyError:
+            origin = self.shop.price(item) * val
         cost = ceil(origin + manager._tax_cost(origin))
         bal = gold.get_score()
         if bal < cost:
@@ -74,7 +80,10 @@ class manager:
         if val <= 0:
             return "数量必须是正数！(太小的小数也不行,那么点儿货谁要啊?"
         if item not in self.products:
-            return f"找不到物品{item}"
+            if self.shop.ensure(item):
+                return f"商店道具不支持出售."
+            else:
+                return f"找不到物品{item}"
         bal = self.balance[group_num, uid, item]
         if bal < val:
             return f"物品不足，你只有{item}x{manager._format_num(bal)}"
@@ -96,6 +105,7 @@ class manager:
                 pass
 
         content = "\n".join(contents)
+        content += self.shop.format_items_list()
         return f"目前的商品有：\n{content}"
 
     def list_balances(self, gid, uid):
@@ -164,55 +174,5 @@ class manager:
         msg_at = MessageSegment.at(sid_r)
         return f"成功赠予{msg_at}金币{val}剩余金币{gold_g.get_score()}。"
 
-#     # todo: 商店
-class Shop():
-    """派蒙商店Beta"""    
-    @staticmethod
-    def __load_items() -> dict:
-        with open(os.path.join(os.path.dirname(__file__),'items.yaml'),'r',encoding='utf8') as f:
-            data = yaml.load(f,Loader=yaml.FullLoader)
-            f.close()
-        return data
-    
-    @staticmethod
-    def format_items_list() -> str:
-        """返回格式化道具及价格列表"""
-        ret = f'\n以下为道具列表:\n'
-        data = Shop.__load_items()
-        if data is None:
-            ret += f'现在没有道具在售.'
-        else:
-            temp_ret = ''
-            for items in data:
-                    price = data[items]['price']
-                    temp_ret += f'{items} 当前价格 {price}'
-                    rate = price / data[items]['origin']
-                    if rate < 1:
-                        rate = 1 - rate
-                        temp_ret += f' {round(round(rate,2)*100)}%off\n'
-                    else:
-                        temp_ret += '\n'
-            ret += temp_ret
-        return ret
-    
-    def __init__(self,item) -> None:
-        self.__list = Shop.__load_items()
-        if item not in self.__list:
-            raise IndexError('no such items')
-        else:
-            self.name = item
 
-    @staticmethod
-    def gen_price() -> None:
-        """每日特价?"""
-        items_data = Shop.__load_items()
-        price = {item:items_data[item]['origin'] for item in items_data}
-        for item in price:
-            r = random.random()
-            if r >= 0.75:
-                price[item] *= r
-                price[item] = round(price[item],2)
-            items_data[item].update({'price':price[item]})
-        with open(os.path.join(os.path.dirname(__file__),'items.yaml'),'w',encoding='utf8') as f:
-            yaml.dump(items_data,f,allow_unicode=True)
-            f.close()
+#     # todo: 商店
