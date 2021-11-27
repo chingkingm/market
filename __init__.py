@@ -1,4 +1,6 @@
-from .manager import manager,Shop
+from hoshino.modules.market.Shop import Item
+from .manager import manager
+from .Shop import Shop,Item
 from .backend import json_backend, balance, duel_backend
 from .product import coincap_product, sina_product, sochain_product, cryptocompare_product
 from hoshino.service import Service
@@ -103,5 +105,10 @@ async def coin_g(bot, ev):
 
 @sv.scheduled_job('cron',hour=4,minute=30)
 def the_sale():
-
+    """定时生成当日价格"""
     Shop.gen_price()
+
+@sv.on_fullmatch('查看1')
+async def looklook(bot,ev):
+    i = Item('涩图加一卡')
+    await bot.send(ev,i.show_effect())
