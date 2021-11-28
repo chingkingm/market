@@ -19,31 +19,29 @@ class Item(object):
         if name in self.__list:
             self.name = name
             self.effect = self.__list[name]['effect']
-            self.lmt = DailyNumberLimiterInFile(self.__list[name]['limit'],1)
+            self.lmt = DailyNumberLimiterInFile(self.__list[name]['limit'],99)
             self.path = os.path.join(self.PATH,self.name)
             self.proj = self.__list[name]['proj']
-            print(self.path)
+            self.price = self.__list[name]['price']
     
     def show_effect(self):
         img_list = os.listdir(self.path)
         img = random.choice(img_list)
-        # img_mes = R.img(img).cqcode
         img_mes = MessageSegment.image(f'file:///{os.path.join(self.path,img)}')
-        # mes = img_mes + self.effect
         mes = f'道具`{self.name}`效果为\n{img_mes}{self.effect}'
+        mes += f'\n今日价格:{self.price}'
         return mes
     def use(self,key,val) -> str:
         """使用道具"""
         lmt_num = self.lmt.get_num(key)
         self.lmt.set_num(key,lmt_num-val)
-        # todo 文件里没减
-        return f'道具{self.name}*{val}使用成功,今日{self.proj}次数已更改为{self.lmt.get_num(key)}'
+        return f'道具{self.name}*{val}使用成功,今日{self.proj}次数剩余{self.lmt.max-self.lmt.get_num(key)}'
 class Shop():
     """派蒙商店Beta"""    
     @staticmethod
     def format_items_list() -> str:
         """格式化道具及价格列表"""
-        ret = f'\n以下为道具列表beta:\n'
+        ret = f'\n目前的道具有:\n'
         data = _load_items()
         if data is None:
             ret += f'现在没有道具在售.'
@@ -77,8 +75,7 @@ class Shop():
     def price(self,item):
         return self.__list[item]['price']    
     
-    def limit(self,item):
-        """限购"""
+    
     @staticmethod
     def gen_price() -> None:
         """每日特价?"""

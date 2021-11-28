@@ -99,8 +99,10 @@ class manager:
             return f'找不到道具{item}'
         bal = self.balance[group_num,str(uid),item]
         val = floor(val)
+        if val <= 0:
+            return f'使用数量仅支持正数.'
         if bal < val:
-            return f'道具不足,你只有{item}x{manager._format_num(bal)}'
+            return f'道具不足,你只有{item}x{manager._format_num(bal)}.'
         self.balance[group_num,str(uid),item] = bal - val
         it = Item(item)
         return it.use(uid,val)
