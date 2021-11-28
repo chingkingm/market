@@ -119,7 +119,7 @@ async def check(bot, ev):
     )
 
 
-@sv.on_prefix("奖励金币", "增加金币")
+@sv.on_prefix(("奖励金币", "增加金币"))
 async def coin_u(bot, ev):
     gid = ev.group_id
     if not priv.check_priv(ev, priv.ADMIN):
@@ -167,9 +167,3 @@ async def coin_g(bot, ev):
 def the_sale():
     """定时生成当日价格"""
     Shop.gen_price()
-
-
-@sv.on_fullmatch("查看1")
-async def looklook(bot, ev):
-    i = Item("涩图加一卡")
-    await bot.send(ev, i.show_effect())

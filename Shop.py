@@ -20,6 +20,7 @@ class Item(object):
             self.name = name
             self.effect = self.__list[name]['effect']
             self.lmt = DailyNumberLimiterInFile(self.__list[name]['limit'],99)
+            self.lmt.check(111)
             self.path = os.path.join(self.PATH,self.name)
             self.proj = self.__list[name]['proj']
             self.price = self.__list[name]['price']
@@ -33,8 +34,14 @@ class Item(object):
         return mes
     def use(self,key,val) -> str:
         """使用道具"""
-        lmt_num = self.lmt.get_num(key)
-        self.lmt.set_num(key,lmt_num-val)
+        if self.name == '人生重来枪':
+            if self.lmt.check(key):
+                return f'今日{self.proj}奖金获取次数还未达到上限,不可以使用{self.name}.'
+            else:
+                self.lmt.reset(key)
+        else:
+            lmt_num = self.lmt.get_num(key)
+            self.lmt.set_num(key,lmt_num-val)
         return f'道具{self.name}*{val}使用成功,今日{self.proj}次数剩余{self.lmt.max-self.lmt.get_num(key)}'
 class Shop():
     """派蒙商店Beta"""    

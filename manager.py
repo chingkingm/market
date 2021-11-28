@@ -101,11 +101,15 @@ class manager:
         val = floor(val)
         if val <= 0:
             return f'使用数量仅支持正数.'
+        if item == '人生重来枪' and val > 1:
+            return f'{item}每次最多使用一个.'
         if bal < val:
-            return f'道具不足,你只有{item}x{manager._format_num(bal)}.'
-        self.balance[group_num,str(uid),item] = bal - val
+            return f'道具不足,你只有{item}x{manager._format_num(bal)}.'        
         it = Item(item)
-        return it.use(uid,val)
+        ret = it.use(uid,val)
+        if '成功' in ret:
+            self.balance[group_num,str(uid),item] = bal - val            
+        return ret
 
     def list_products(self):
         contents = []
