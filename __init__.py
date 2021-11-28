@@ -1,3 +1,4 @@
+from logging import log
 from hoshino.modules.market.Shop import Item
 from .manager import manager
 from .Shop import Shop,Item
@@ -8,7 +9,7 @@ from nonebot import on_startup
 from hoshino import priv
 # json_backend代表独立的json存储
 # duel_backend代表与pcrduel金币联动的存储
-
+from loguru import logger
 mgr = None
 
 sv = Service('market', enable_on_default=True, bundle='market', help_='''购买大头菜,本金1000
@@ -48,6 +49,15 @@ async def _load_manager(): # ensure all plugins have been loaded
 async def buy_or_sell(bot, ev):
     await bot.finish(ev, (mgr.sell_products if ev['match'].group(1) == '卖出' else mgr.buy_products)(str(ev['group_id']), str(ev['user_id']), ev['match'].group(2).strip(), float(ev['match'].group(3))), at_sender=True)
 
+@sv.on_rex(r'^(使用)(.*?)\*(\d*.?\d*)$')
+async def use_item(bot,ev):
+    gid = '965166478'
+    uid = ev['user_id']
+    item = ev['match'].group(2).strip()
+    val = float(ev['match'].group(3))
+    mes = mgr.use_item(gid,uid,item,val)
+    await bot.send(ev,mes,at_sender=True)
+    # await bot.finish(ev, mgr.use_item(str(ev['group_id'],str(ev['user_id'],ev['match'].group(2).strip(),float(ev['match'].group(3))))),at_sender=True)
 @sv.on_rex(r'^市场列表$')
 async def listmarket(bot, ev):
     await bot.finish(ev, mgr.list_products(), at_sender=True)

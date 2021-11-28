@@ -3,7 +3,7 @@ from logging import getLogger
 from typing import List
 from .product import product
 from .backend import backend, balance
-from .Shop import Shop
+from .Shop import Item, Shop
 from math import ceil, floor
 from hoshino.util import DailyNumberLimiterInFile
 import random
@@ -94,6 +94,17 @@ class manager:
         gold.add_score(cost, reason=f"{gid}群卖出{item}*{val}")
         return f"成功卖出了{item}x{manager._format_num(val)}，获得了{manager._format_negcost(origin)}，现有{gold.get_score()}金币"
 
+    def use_item(self,gid,uid,item,val):
+        if not self.shop.ensure(item):
+            return f'找不到道具{item}'
+        bal = self.balance[group_num,str(uid),item]
+        val = floor(val)
+        if bal < val:
+            return f'道具不足,你只有{item}x{manager._format_num(bal)}'
+        self.balance[group_num,str(uid),item] = bal - val
+        it = Item(item)
+        return it.use(uid,val)
+
     def list_products(self):
         contents = []
         for product in self.products:
@@ -108,7 +119,7 @@ class manager:
         content += self.shop.format_items_list()
         return f"目前的商品有：\n{content}"
 
-    def list_balances(self, gid, uid):
+    def list_balances(self, gid, uid):        
         bal = self.balance[group_num, uid]
         contents = []
         for product in bal:

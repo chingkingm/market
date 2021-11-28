@@ -9,7 +9,7 @@ def _load_items() -> dict:
         data = yaml.load(f,Loader=yaml.FullLoader)
         f.close()
     return data
-# todo 效果展示,del限购del,item.yaml不存在则新建
+# todo 效果展示,item.yaml不存在则新建,使用道具
 class Item(object):
     """item"""
     PATH = os.path.join(os.path.dirname(__file__),'image')
@@ -19,7 +19,9 @@ class Item(object):
         if name in self.__list:
             self.name = name
             self.effect = self.__list[name]['effect']
+            self.lmt = DailyNumberLimiterInFile(self.__list[name]['limit'],1)
             self.path = os.path.join(self.PATH,self.name)
+            self.proj = self.__list[name]['proj']
             print(self.path)
     
     def show_effect(self):
@@ -30,6 +32,12 @@ class Item(object):
         # mes = img_mes + self.effect
         mes = f'道具`{self.name}`效果为\n{img_mes}{self.effect}'
         return mes
+    def use(self,key,val) -> str:
+        """使用道具"""
+        lmt_num = self.lmt.get_num(key)
+        self.lmt.set_num(key,lmt_num-val)
+        # todo 文件里没减
+        return f'道具{self.name}*{val}使用成功,今日{self.proj}次数已更改为{self.lmt.get_num(key)}'
 class Shop():
     """派蒙商店Beta"""    
     @staticmethod
