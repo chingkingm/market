@@ -1,9 +1,6 @@
 import yaml,os,random
 from hoshino.util import DailyNumberLimiterInFile
-from hoshino import MessageSegment,R
-"""消息入口依旧为manager,当物品不在mgr.products中时,调用Shop.ensure,判断是否为商店道具.
-
-"""
+from hoshino import MessageSegment
 def _load_items() -> dict:
     with open(os.path.join(os.path.dirname(__file__),'items.yaml'),'r',encoding='utf8') as f:
         data = yaml.load(f,Loader=yaml.FullLoader)
@@ -25,6 +22,13 @@ class Item(object):
             self.proj = self.__list[name]['proj']
             self.price = self.__list[name]['price']
     
+    
+    def __random_pic(self):
+        img_list = os.listdir(self.path)
+        img = random.choice(img_list)
+        img_mes = MessageSegment.image(f'file:///{os.path.join(self.path,img)}')
+        return img_mes
+
     def show_effect(self):
         img_list = os.listdir(self.path)
         img = random.choice(img_list)
@@ -42,7 +46,7 @@ class Item(object):
         else:
             lmt_num = self.lmt.get_num(key)
             self.lmt.set_num(key,lmt_num-val)
-        return f'道具{self.name}*{val}使用成功,今日{self.proj}次数剩余{self.lmt.max-self.lmt.get_num(key)}'
+        return f'道具{self.name}*{val}使用成功,今日{self.proj}次数剩余{self.lmt.max-self.lmt.get_num(key)}{self.__random_pic()}'
 class Shop():
     """派蒙商店Beta"""    
     @staticmethod
@@ -65,7 +69,6 @@ class Shop():
                 else:
                     temp_ret += '\n'
                 ret += temp_ret
-            ret += f'注意:道具只能使用,不可出售.'
         return ret
     
     def __init__(self) -> None:

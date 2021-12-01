@@ -1,4 +1,4 @@
-import hoshino,math
+import math
 from .manager import manager
 from .Shop import Shop, Item
 from .backend import json_backend, balance, duel_backend
@@ -16,7 +16,7 @@ from hoshino.util import FreqLimiter
 # json_backend代表独立的json存储
 # duel_backend代表与pcrduel金币联动的存储
 from loguru import logger
-flmt = FreqLimiter(30)
+flmt = FreqLimiter(10)
 mgr = None
 
 sv = Service(
@@ -47,8 +47,9 @@ async def _load_manager():  # ensure all plugins have been loaded
             sina_product("sh600276", "霓裳花"),
             sina_product("sh601166", "琉璃百合"),
             sina_product("sh601012", "琉璃袋"),
+            sina_product("sh688005","风车菊"),
             sina_product("sh600519", "椰奶"),
-            # cryptocompare_product("btc:usd", "派蒙", multiplier=.1),
+            cryptocompare_product("btc:usd", "派蒙", multiplier=.1),
             # sochain_product("doge:usd", "优衣", multiplier=10),
             # coincap_product("uniswap", "琉璃百合"),
             # coincap_product("xrp", "琉璃袋"),
@@ -113,11 +114,6 @@ async def excoin(bot, ev):
     )
 
 
-# @sv.on_rex(r"^签到$")
-# async def check(bot, ev):
-#     await bot.finish(
-#         ev, mgr.daily_check(str(ev["group_id"]), str(ev["user_id"])), at_sender=True
-#     )
 @sv.on_prefix('签到')
 async def multicheck(bot:HoshinoBot,ev:CQEvent):
     msg = ev.message.extract_plain_text().strip()
@@ -129,7 +125,7 @@ async def multicheck(bot:HoshinoBot,ev:CQEvent):
         val = 1
     val = float(val)
     if not flmt.check(uid):
-        await bot.send(ev,f'两次签到需要间隔至少30s.',at_sender = True)
+        await bot.send(ev,f'两次签到需要间隔至少10s.',at_sender = True)
         return
     else:
         if val > 50:
@@ -141,11 +137,10 @@ async def multicheck(bot:HoshinoBot,ev:CQEvent):
             else:
                 await bot.send(ev,f'小数,你搞什么?',at_sender=True)
 
-
 @sv.on_prefix(("奖励金币", "增加金币"))
 async def coin_u(bot, ev):
     gid = ev.group_id
-    if not priv.check_priv(ev, priv.ADMIN):
+    if not priv.check_priv(ev, priv.SU):
         await bot.send(ev, "只有管理员可以使用。")
         return
     sid = None
@@ -169,7 +164,7 @@ async def coin_d(bot, ev):
         if m.type == "at":
             sid = int(m.data["qq"])
     if sid:
-        await bot.finish(ev, mgr.coin_down(str(gid), str(sid), val), at_sender=True)
+        await bot.finish(ev, mgr.coin_down(str(gid), str(sid), int(val)), at_sender=True)
 
 
 @sv.on_prefix("赠送金币")
