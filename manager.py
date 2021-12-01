@@ -12,6 +12,7 @@ from hoshino.util.score import Score
 from decimal import *
 
 check_lmt = DailyNumberLimiterInFile("dailycheck", 1)
+check_time = DailyNumberLimiterInFile("check_time",2333)
 group_num = "965166478"
 
 
@@ -145,20 +146,44 @@ class manager:
         return f"你还有{money}金币哦。"
 
     # 每日签到
-    def daily_check(self, gid, uid) -> str:
-        gold = Score(int(uid))
-        if check_lmt.check(int(uid)):
-            check_lmt.increase(int(uid))
-            rand = random.randint(10, 30) * 10 + random.randint(1, 9) * 5
-            if random.random() < 0.016:
-                rand *= 10
-                gold.add_score(rand, reason="签到,lucky")
-                return f"签到完成，运气爆棚，共获得{rand}金币，现有金币{gold.get_score()}。"
-            else:
-                gold.add_score(rand, reason="签到,normal")
-                return f"签到完成，获得{rand}金币，现有金币{gold.get_score()}。"
+    def daily_check(self, uid:int,val:int) -> str:
+        uid = int(uid)
+        gold = Score(uid)
+        if not check_time.check(uid):
+            return f'今天已经签了{check_time.get_num(uid)}次了,该收手了'
         else:
-            return f"你今天已经签到过了哦。"
+            if check_lmt.check(uid):
+                current_num = check_lmt.get_num(key=uid)
+                current_num = check_lmt.max - current_num
+                if val > current_num:
+                    return f'剩余次数不足,你还可以签到{current_num}次.'
+                else:
+                    sum = 0
+                    ret = ''
+                    for n in range(val):
+                        # check_lmt.increase(uid)
+                        rand = random.randint(10, 30) * 10 + random.randint(1, 9) * 5
+                        if random.random() < 0.016:
+                            rand *= 10
+                            ret += f"第{n+1}次签到，运气爆棚，获得{rand}金币.\n"
+                        # else:
+                        #     ret += f"第{n+1}次签到完成，获得{rand}金币.\n"
+                        sum += rand
+                        # gold.add_score(rand, reason="签到,normal")
+                    gold.add_score(sum,'check')
+                    if val > 1:
+                        # ret = ret.replace('签到完成','签到')
+                        ret += f'{val}次签到完成,共获得{sum}金币.\n现有金币{gold.get_score()}.'
+                    else:
+                        print(ret)
+                        if ret == '':
+                            ret = f'签到完成,获得{rand}金币,'
+                        ret += f'现有金币{gold.get_score()}.'
+                    check_lmt.set_num(uid,check_lmt.get_num(uid)+val)
+                    check_time.set_num(uid,check_time.get_num(uid)+val)
+                    return ret
+            else:
+                return f"你今天已经签到过了哦。"
 
     # 金币加
     def coin_plus(self, gid, uid, val) -> str:

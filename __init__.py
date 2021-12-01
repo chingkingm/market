@@ -1,3 +1,4 @@
+import hoshino,math
 from .manager import manager
 from .Shop import Shop, Item
 from .backend import json_backend, balance, duel_backend
@@ -11,11 +12,11 @@ from hoshino.service import Service
 from nonebot import on_startup
 from hoshino import HoshinoBot, priv
 from hoshino.typing import CQEvent
-
+from hoshino.util import FreqLimiter
 # json_backend代表独立的json存储
 # duel_backend代表与pcrduel金币联动的存储
 from loguru import logger
-
+flmt = FreqLimiter(30)
 mgr = None
 
 sv = Service(
@@ -112,11 +113,33 @@ async def excoin(bot, ev):
     )
 
 
-@sv.on_rex(r"^签到$")
-async def check(bot, ev):
-    await bot.finish(
-        ev, mgr.daily_check(str(ev["group_id"]), str(ev["user_id"])), at_sender=True
-    )
+# @sv.on_rex(r"^签到$")
+# async def check(bot, ev):
+#     await bot.finish(
+#         ev, mgr.daily_check(str(ev["group_id"]), str(ev["user_id"])), at_sender=True
+#     )
+@sv.on_prefix('签到')
+async def multicheck(bot:HoshinoBot,ev:CQEvent):
+    msg = ev.message.extract_plain_text().strip()
+    msg = msg.split('*')
+    uid = ev["user_id"]
+    try:
+        val = msg[1]
+    except IndexError:
+        val = 1
+    val = float(val)
+    if not flmt.check(uid):
+        await bot.send(ev,f'两次签到需要间隔至少30s.',at_sender = True)
+        return
+    else:
+        if val > 50:
+            await bot .send(ev,f'太多了,会卡住.每次最多50.',at_sender=True)
+        else:
+            flmt.start_cd(uid)
+            if val == math.floor(val):
+                await bot.finish(ev,mgr.daily_check(int(uid),int(val)),at_sender = True)
+            else:
+                await bot.send(ev,f'小数,你搞什么?',at_sender=True)
 
 
 @sv.on_prefix(("奖励金币", "增加金币"))
