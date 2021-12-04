@@ -1,3 +1,4 @@
+import os,yaml
 from logging import getLogger
 from typing import List
 from .product import product
@@ -11,7 +12,7 @@ from hoshino.util.score import Score
 from decimal import *
 
 check_lmt = DailyNumberLimiterInFile("dailycheck", 1)
-check_time = DailyNumberLimiterInFile("check_time", 300)
+check_time = DailyNumberLimiterInFile("check_time",2333)
 group_num = "965166478"
 
 
@@ -31,13 +32,13 @@ class manager:
     @staticmethod
     def _format_cost(origin):
         tax = manager._tax_cost(origin)
-        cost = ceil(origin + tax)
+        cost = round(origin + tax,2)
         return f"{cost}金币" + (f"（含税{manager._format_num(tax)}金币）" if tax > 0 else 0)
 
     @staticmethod
     def _format_negcost(origin):
         tax = manager._tax_cost(origin)
-        cost = floor(origin - tax)
+        cost = round(origin - tax,2)
         return f"{cost}金币" + (f"（已去除税{manager._format_num(tax)}金币）" if tax > 0 else 0)
 
     def __init__(self, backend: backend, balance: balance, products: List[product]):
@@ -65,7 +66,7 @@ class manager:
             origin = self.products[item].price * val
         except KeyError:
             origin = self.shop.price(item) * val
-        cost = ceil(origin + manager._tax_cost(origin))
+        cost = round(origin + manager._tax_cost(origin),2)
         bal = gold.get_score()
         if bal < cost:
             return f"余额不足，需要{manager._format_cost(origin)}，你只有{bal}金币"
@@ -89,26 +90,26 @@ class manager:
             return f"物品不足，你只有{item}x{manager._format_num(bal)}"
 
         origin = self.products[item].price * val
-        cost = floor(origin - manager._tax_cost(origin))
+        cost = round(origin - manager._tax_cost(origin),2)
         self.balance[group_num, uid, item] = bal - val
         gold.add_score(cost, reason=f"{gid}群卖出{item}*{val}")
         return f"成功卖出了{item}x{manager._format_num(val)}，获得了{manager._format_negcost(origin)}，现有{gold.get_score()}金币"
 
-    def use_item(self, gid, uid, item, val):
+    def use_item(self,gid,uid,item,val):
         if not self.shop.ensure(item):
-            return f"找不到道具{item}"
-        bal = self.balance[group_num, str(uid), item]
+            return f'找不到道具{item}'
+        bal = self.balance[group_num,str(uid),item]
         val = floor(val)
         if val <= 0:
-            return f"使用数量仅支持正数."
-        if item == "人生重来枪" and val > 1:
-            return f"{item}每次最多使用一个."
+            return f'使用数量仅支持正数.'
+        if item == '人生重来枪' and val > 1:
+            return f'{item}每次最多使用一个.'
         if bal < val:
-            return f"道具不足,你只有{item}x{manager._format_num(bal)}."
+            return f'道具不足,你只有{item}x{manager._format_num(bal)}.'        
         it = Item(item)
-        ret = it.use(uid, val)
-        if "成功" in ret:
-            self.balance[group_num, str(uid), item] = bal - val
+        ret = it.use(uid,val)
+        if '成功' in ret:
+            self.balance[group_num,str(uid),item] = bal - val            
         return ret
 
     def list_products(self):
@@ -125,7 +126,7 @@ class manager:
         content += self.shop.format_items_list()
         return f"目前的商品有：\n{content}"
 
-    def list_balances(self, gid, uid):
+    def list_balances(self, gid, uid):        
         bal = self.balance[group_num, uid]
         contents = []
         for product in bal:
@@ -145,45 +146,50 @@ class manager:
         return f"你还有{money}金币哦。"
 
     # 每日签到
-    def daily_check(self, uid: int, val: int) -> str:
+    def daily_check(self, uid:int,val:int) -> str:
         uid = int(uid)
         gold = Score(uid)
         if not check_time.check(uid):
-            return f"今天已经签了{check_time.get_num(uid)}次了,该收手了"
+            return f'今天已经签了{check_time.get_num(uid)}次了,该收手了'
         else:
             if check_lmt.check(uid):
                 current_num = check_lmt.get_num(key=uid)
                 current_num = check_lmt.max - current_num
                 if val > current_num:
-                    return f"剩余次数不足,你还可以签到{current_num}次."
+                    return f'剩余次数不足,你还可以签到{current_num}次.'
                 else:
                     sum = 0
-                    ret = ""
+                    ret = ''
                     for n in range(val):
+                        # check_lmt.increase(uid)
                         rand = random.randint(10, 30) * 10 + random.randint(1, 9) * 5
                         if random.random() < 0.008:
                             rand *= 10
                             ret += f"第{n+1}次签到，运气爆棚，获得{rand}金币.\n"
+                        # else:
+                        #     ret += f"第{n+1}次签到完成，获得{rand}金币.\n"
                         sum += rand
                     gold.add_score(sum, reason="签到")
                     if val > 1:
-                        ret += f"{val}次签到完成,共获得{sum}金币.\n现有金币{gold.get_score()}."
+                        # ret = ret.replace('签到完成','签到')
+                        ret += f'{val}次签到完成,共获得{sum}金币.\n现有金币{gold.get_score()}.'
                     else:
                         print(ret)
-                        if ret == "":
-                            ret = f"签到完成,获得{rand}金币,"
-                        ret += f"现有金币{gold.get_score()}."
-                    check_lmt.set_num(uid, check_lmt.get_num(uid) + val)
-                    check_time.set_num(uid, check_time.get_num(uid) + val)
-                    ret += f"\n今日签到{check_time.get_num(uid)}/{check_time.max}."
+                        if ret == '':
+                            ret = f'签到完成,获得{rand}金币,'
+                        ret += f'现有金币{gold.get_score()}.'
+                    check_lmt.set_num(uid,check_lmt.get_num(uid)+val)
+                    check_time.set_num(uid,check_time.get_num(uid)+val)
+                    ret += f'\n今日签到{check_time.get_num(uid)}/{check_time.max}.'
                     return ret
             else:
                 return f"你今天已经签到过了哦。"
 
     # 金币加
     def coin_plus(self, gid, uid, val) -> str:
+        # self.backend[gid, uid] += int(val)
         gold = Score(int(uid))
-        gold.add_score(Decimal(str(val)), "奖励")
+        gold.add_score(Decimal(str(val)),'奖励')
         return f"奖励完成"
 
     # 金币减
@@ -208,7 +214,7 @@ class manager:
             return f"您的金币数量不足."
         gold_g.give_score(val, target_uid=sid_r)
         msg_at = MessageSegment.at(sid_r)
-        return f"成功赠予{msg_at}金币{val}剩余金币{gold_g.get_score()}。"
+        return f"成功赠予{msg_at}金币{val},剩余金币{gold_g.get_score()}。"
 
 
 #     # todo: 商店

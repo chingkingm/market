@@ -1,6 +1,9 @@
 import yaml,os,random
 from hoshino.util import DailyNumberLimiterInFile
-from hoshino import MessageSegment
+from hoshino import MessageSegment,R
+"""消息入口依旧为manager,当物品不在mgr.products中时,调用Shop.ensure,判断是否为商店道具.
+
+"""
 def _load_items() -> dict:
     with open(os.path.join(os.path.dirname(__file__),'items.yaml'),'r',encoding='utf8') as f:
         data = yaml.load(f,Loader=yaml.FullLoader)
@@ -83,6 +86,7 @@ class Shop():
             return False
     
     def price(self,item):
+        self.__list = _load_items()
         return self.__list[item]['price']    
     
     

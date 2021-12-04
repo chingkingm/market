@@ -1,18 +1,18 @@
 人生重来枪:
   effect: 重置本日轮盘赌赏金次数,这次必不可能死!
+  limit: roullette_gold
   origin: 195
   price: 195
-  limit: roullette_gold
   proj: 轮盘赌
 涩图加一卡:
   effect: 涩图上限了?发动强制色色卡!
-  origin: 300
-  price: 244.38
   limit: setu
+  origin: 300
+  price: 300
   proj: 涩图
 额外签到券:
   effect: 获得额外的一次签到次数.哇,金色传说!
-  origin: 230
-  price: 213.43
   limit: dailycheck
+  origin: 270
+  price: 218.57
   proj: 签到
