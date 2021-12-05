@@ -1,4 +1,4 @@
-import os, yaml
+import os, hoshino, base64
 from logging import getLogger
 from typing import List
 from .product import product
@@ -12,7 +12,8 @@ from hoshino.util.score import Score
 from decimal import *
 import requests, json
 from requests.models import CaseInsensitiveDict
-
+from PIL import Image,ImageDraw,ImageFont
+from io import BytesIO
 check_lmt = DailyNumberLimiterInFile("dailycheck", 1)
 check_time = DailyNumberLimiterInFile("check_time", 50)
 lmt_shici = DailyNumberLimiterInFile("shici", 1)
@@ -21,14 +22,27 @@ group_num = "965166478"
 
 def daily_shici() -> str:
     token = "RvUiqSIHAc4zWcSSgZmuoP/e9FKoBu7V"
-    u = "https://v2.jinrishici.com/sentence"
+    API = "https://v2.jinrishici.com/sentence"
     headers = CaseInsensitiveDict
     headers = {"X-User-Token": token}
-    resp = requests.get(url=u, headers=headers)
-    text = json.loads(resp.text)
-    ret = text["data"]["content"]
-    return ret
-
+    resp = requests.get(url=API, headers=headers)
+    text = json.loads(resp.text)["data"]["content"]
+    text = text.replace('，',",").replace('：',":")
+    text_source = '文本来自今日诗词'
+    font_path = os.path.join(hoshino.config.RES_DIR,r'font\FZXiJinLJW.TTF')
+    img_size = [len(text)*40+10,100]
+    blank_image = Image.new('RGBA',(img_size[0],img_size[1]),color=(50,50,50))
+    img_draw = ImageDraw.Draw(blank_image)
+    fnt = ImageFont.truetype(font_path,40)
+    img_draw.text(xy=(10,10),text=text,font=fnt,fill=(214,214,214))
+    fnt = ImageFont.truetype(font_path,25)
+    img_draw.text(xy=(img_size[0]-len(text_source)*26,60),font=fnt,text=text_source,fill=(214,214,214))
+    """以下pic2b64来自egenshin"""
+    bio = BytesIO()
+    data = blank_image.convert("RGB")
+    data.save(bio, format='JPEG', quality=80)
+    base64_str = base64.b64encode(bio.getvalue()).decode()
+    return 'base64://' + base64_str
 
 class manager:
     @staticmethod
@@ -192,8 +206,8 @@ class manager:
                     check_time.set_num(uid, check_time.get_num(uid) + val)
                     ret += f"\n今日签到{check_time.get_num(uid)}/{check_time.max}."
                     if lmt_shici.check(uid):
-                        shici = daily_shici()
-                        ret += f"\n{shici}"
+                        shici = MessageSegment.image(daily_shici())
+                        ret = f'{shici}\n{ret}'
                     return ret
             else:
                 return f"你今天已经签到过了哦。"
