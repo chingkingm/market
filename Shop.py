@@ -96,8 +96,9 @@ class Shop():
         items_data = _load_items()
         price = {item:items_data[item]['origin'] for item in items_data}
         for item in price:
-            r = random.random()
-            if r >= 0.88:
+            sale_or_not = random.random()
+            if sale_or_not >= 0.48:
+                r = random.uniform(0.8, 1.0)
                 price[item] *= r
                 price[item] = round(price[item],2)
             items_data[item].update({'price':price[item]})
