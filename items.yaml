@@ -13,6 +13,6 @@
 额外签到券:
   effect: 获得额外的一次签到次数.哇,金色传说!
   limit: dailycheck
-  origin: 270
-  price: 218.57
+  origin: 265
+  price: 265
   proj: 签到

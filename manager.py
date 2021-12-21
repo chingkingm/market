@@ -21,7 +21,7 @@ group_num = "965166478"
 
 
 def daily_shici() -> str:
-    token = "RvUiqSIHAc4zWcSSgZmuoP/e9FKoBu7V"
+    token = "3QWh8w2e3M/4rDYU+OLQLuH3oNuGzbtu"
     API = "https://v2.jinrishici.com/sentence"
     headers = CaseInsensitiveDict
     headers = {"X-User-Token": token}
@@ -207,6 +207,7 @@ class manager:
                     ret += f"\n今日签到{check_time.get_num(uid)}/{check_time.max}."
                     if lmt_shici.check(uid):
                         shici = MessageSegment.image(daily_shici())
+                        lmt_shici.increase(uid)
                         ret = f'{shici}\n{ret}'
                     return ret
             else:

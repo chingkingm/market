@@ -49,7 +49,7 @@ async def _load_manager():  # ensure all plugins have been loaded
             sina_product("sh601012", "琉璃袋"),
             sina_product("sh688005","风车菊"),
             sina_product("sh600519", "椰奶"),
-            cryptocompare_product("btc:usd", "派蒙", multiplier=.1),
+            sochain_product("btc:usd","派蒙", multiplier=.1),
             # sochain_product("doge:usd", "优衣", multiplier=10),
             # coincap_product("uniswap", "琉璃百合"),
             # coincap_product("xrp", "琉璃袋"),
@@ -182,6 +182,6 @@ async def coin_g(bot, ev):
 
 
 @sv.scheduled_job("cron", hour=4, minute=30)
-def the_sale():
+async def the_sale():
     """定时生成当日价格"""
     Shop.gen_price()
