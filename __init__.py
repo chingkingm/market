@@ -125,18 +125,13 @@ async def multicheck(bot:HoshinoBot,ev:CQEvent):
     except IndexError:
         val = 1
     val = float(val)
-    if not flmt.check(uid):
-        await bot.send(ev,f'两次签到需要间隔至少10s.',at_sender = True)
-        return
+    if val > 50:
+        await bot .send(ev,f'太多了,会卡住.每次最多50.',at_sender=True)
     else:
-        if val > 50:
-            await bot .send(ev,f'太多了,会卡住.每次最多50.',at_sender=True)
+        if val == math.floor(val):
+            await bot.finish(ev,mgr.daily_check(int(uid),int(val)),at_sender = True)
         else:
-            flmt.start_cd(uid)
-            if val == math.floor(val):
-                await bot.finish(ev,mgr.daily_check(int(uid),int(val)),at_sender = True)
-            else:
-                await bot.send(ev,f'小数,你搞什么?',at_sender=True)
+            await bot.send(ev,f'小数,你搞什么?',at_sender=True)
 
 @sv.on_prefix(("奖励金币", "增加金币"))
 async def coin_u(bot, ev):
