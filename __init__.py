@@ -7,6 +7,7 @@ from .product import (
     sina_product,
     sochain_product,
     cryptocompare_product,
+    qq_product,
 )
 from hoshino.service import Service
 from nonebot import on_startup
@@ -43,12 +44,12 @@ async def _load_manager():  # ensure all plugins have been loaded
         be,
         balance(),
         [
-            sina_product("sh601005", "甜甜花"),
-            sina_product("sh600276", "霓裳花"),
-            sina_product("sh601166", "琉璃百合"),
-            sina_product("sh601012", "琉璃袋"),
-            sina_product("sh688005","风车菊"),
-            sina_product("sh600519", "椰奶"),
+            qq_product("sh601005", "甜甜花"),
+            qq_product("sh600276", "霓裳花"),
+            qq_product("sh601166", "琉璃百合"),
+            qq_product("sh601012", "琉璃袋"),
+            qq_product("sh688005","风车菊"),
+            qq_product("sh600519", "椰奶"),
             sochain_product("btc:usd","派蒙", multiplier=.1),
             # sochain_product("doge:usd", "优衣", multiplier=10),
             # coincap_product("uniswap", "琉璃百合"),
